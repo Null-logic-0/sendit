@@ -7,7 +7,7 @@ defmodule SenditWeb.UserLive.Confirmation do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
+      <div class="mx-auto max-w-sm flex flex-col items-center min-h-screen justify-center">
         <div class="text-center">
           <.header>Welcome {@user.email}</.header>
         </div>

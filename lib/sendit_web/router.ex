@@ -50,6 +50,15 @@ defmodule SenditWeb.Router do
   scope "/", SenditWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    live_session :authenticated_user,
+      on_mount: [{SenditWeb.UserAuth, :require_authenticated}] do
+      live "/chat", ChatLive.InboxLive
+    end
+  end
+
+  scope "/", SenditWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
     live_session :require_authenticated_user,
       on_mount: [{SenditWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit

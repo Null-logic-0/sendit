@@ -31,7 +31,7 @@ defmodule SenditWeb.HomePage do
         </p>
 
         <div class="mt-8 flex items-center justify-center">
-          <.link navigate={~p"/users/register"} class="btn btn-primary">
+          <.link navigate={~p"/chat"} class="btn btn-primary">
             Start chatting <.icon name="hero-arrow-right" class="h-4 w-4" />
           </.link>
         </div>
@@ -141,12 +141,10 @@ defmodule SenditWeb.HomePage do
           <div class="flex gap-2 items-center w-full">
             <input
               class="input input-bordered rounded-xl flex-1 text-sm"
-              disabled="true"
               placeholder="Message Alex"
-              readonly
             />
 
-            <.button class="btn btn-primary btn-circle">
+            <.button class="btn btn-primary btn-circle" navigate={~p"/chat"}>
               <.icon name="hero-paper-airplane" />
             </.button>
           </div>

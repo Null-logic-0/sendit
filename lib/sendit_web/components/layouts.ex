@@ -37,8 +37,8 @@ defmodule SenditWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <main class="px-4 py-4 sm:px-6 lg:px-8">
-      <div class="mx-auto w-full space-y-4">
+    <main class="h-[100dvh] w-full overflow-hidden bg-base-200 text-base-content">
+      <div class="flex h-full w-full">
         {render_slot(@inner_block)}
       </div>
     </main>

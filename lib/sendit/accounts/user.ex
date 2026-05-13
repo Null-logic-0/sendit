@@ -6,7 +6,9 @@ defmodule Sendit.Accounts.User do
     field :email, :string
     field :username, :string
     field :full_name, :string
-    field :avatar, :string, default: "/images/default.png"
+
+    field :avatar, :string
+
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
@@ -136,8 +138,8 @@ defmodule Sendit.Accounts.User do
   """
   def avatar_changeset(user, attrs, _opts \\ %{}) do
     user
-    |> cast(attrs, [:avatar_image])
-    |> validate_required([:avatar_image])
+    |> cast(attrs, [:avatar])
+    |> validate_required([:avatar])
   end
 
   def identity_changeset(user, attrs, _opts \\ []) do
@@ -152,6 +154,24 @@ defmodule Sendit.Accounts.User do
     |> unsafe_validate_unique(:username, Sendit.Repo)
     |> unique_constraint(:email)
     |> unique_constraint(:username)
+    |> maybe_put_default_avatar()
+  end
+
+  defp maybe_put_default_avatar(changeset) do
+    avatar = get_field(changeset, :avatar)
+    username = get_field(changeset, :username)
+
+    if is_nil(avatar) && is_binary(username) do
+      put_change(changeset, :avatar, default_avatar(username))
+    else
+      changeset
+    end
+  end
+
+  def default_avatar(seed) when is_binary(seed) do
+    encoded_seed = URI.encode(seed)
+
+    "https://api.dicebear.com/9.x/adventurer/svg?seed=#{encoded_seed}"
   end
 
   defp validate_email_format(changeset) do
