@@ -52,7 +52,8 @@ defmodule SenditWeb.Router do
 
     live_session :authenticated_user,
       on_mount: [{SenditWeb.UserAuth, :require_authenticated}] do
-      live "/chat", ChatLive.InboxLive
+      live "/chat", ChatLive.InboxLive, :index
+      live "/chat/:id", ChatLive.InboxLive, :show
     end
   end
 

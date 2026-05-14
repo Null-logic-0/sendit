@@ -4,12 +4,14 @@ defmodule SenditWeb.Chat.InboxSidebar do
   import SenditWeb.UI.{
     AppLogo,
     ThemeToggle,
-    Modal
+    Modal,
+    Search
   }
 
   import SenditWeb.Chat.{
     InboxProfile,
-    ConversationList
+    UsersList,
+    ConversationsList
   }
 
   def inbox_sidebar(assigns) do
@@ -31,18 +33,16 @@ defmodule SenditWeb.Chat.InboxSidebar do
         </div>
       </div>
 
-      <div class="flex items-center gap-2 p-3 border-b border-base-200 shrink-0">
-        <div class="relative flex-1 flex items-center gap-2 ">
-          <.icon name="hero-magnifying-glass" class="size-4 opacity-50 absolute z-10 left-1" />
-          <input
-            type="search"
-            placeholder="Search conversations…"
-            class="input pl-6 pr-1 py-4 rounded-lg input-sm bg-base-200 border-none focus-within:outline-none text-sm"
-          />
-        </div>
+      <div class="flex items-center gap-3  p-3 border-b border-base-300">
+        <.search
+          placeholder="Search Conversations..."
+          change="search-conversations"
+          id="search-conversations"
+          form={@conversations_form}
+        />
         <button
           type="button"
-          class="btn btn-ghost btn-sm btn-circle shrink-0"
+          class="btn btn-ghost btn-sm btn-circle mb-2"
           title="New conversation"
           onclick="conv_modal.showModal()"
         >
@@ -51,15 +51,24 @@ defmodule SenditWeb.Chat.InboxSidebar do
       </div>
 
       <.modal id="conv_modal" title="New conversation">
+        <.search
+          placeholder="Search Users..."
+          form={@users_form}
+          change="search-users"
+          id="search-users"
+          class="px-4"
+        />
         <div class="max-h-[60vh] overflow-y-auto">
-          <.conversation_list items={@items} />
+          <.users_list users={@users} />
         </div>
         <div class="px-4 py-2 border-t border-base-200 text-xs text-base-content/50">
           Select a user to start chatting
         </div>
       </.modal>
 
-      <.conversation_list items={@items} />
+      <div class="overflow-y-auto pb-16">
+        <.conversations_list conversations={@conversations} current_scope={@current_scope} />
+      </div>
 
       <.inbox_profile current_scope={@current_scope} />
     </aside>

@@ -7,7 +7,7 @@ defmodule SenditWeb.UI.Modal do
 
   def modal(assigns) do
     ~H"""
-    <dialog id={@id} class="modal">
+    <dialog id={@id} class="modal" phx-hook="PersistDialog">
       <div class="modal-box p-0 max-w-lg">
         <div class="flex items-center justify-between px-4 py-3 border-b border-base-200">
           <h3 :if={@title} class="font-semibold text-sm">
