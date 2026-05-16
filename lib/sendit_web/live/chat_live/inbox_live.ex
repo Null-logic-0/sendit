@@ -14,20 +14,19 @@ defmodule SenditWeb.ChatLive.InboxLive do
         conversations={@conversations}
         conversations_form={@conversations_form}
         users_form={@users_form}
+        mobile_show_chat={@mobile_show_chat}
       />
 
       <%= if @live_action == :show do %>
         <% other_user =
           Enum.find(@conversation.users, &(&1.id != @current_scope.user.id)) %>
-        <div class={
-          [
-            "
+        <div class={[
+          "
           sticky w-full max-h-[80px] top-0 z-10
           flex items-center  pr-2 py-3
-          border-b border-base-200 bg-base-100"
-            # if(@mobile_show_chat, do: "flex", else: "hidden md:flex")
-          ]
-        }>
+          border-b border-base-200 bg-base-100",
+          if(@mobile_show_chat, do: "hidden md:flex", else: "flex")
+        ]}>
           <div class="flex flex-1  items-center gap-2">
             <.link navigate={~p"/chat"} class="btn btn-ghost btn-sm btn-circle  shrink-0">
               <.icon name="hero-chevron-left" class="size-6" />
@@ -119,6 +118,7 @@ defmodule SenditWeb.ChatLive.InboxLive do
 
     socket
     |> assign(page_title: "#{current_user.user.username}'s inbox")
+    |> assign(:mobile_show_chat, not Map.has_key?(params, "id"))
     |> assign(:searching_users?, q_users != "")
     |> assign(:searching_conversations?, q_conversations != "")
     |> assign(:users_form, to_form(%{"q" => q_users}))

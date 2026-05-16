@@ -56,7 +56,7 @@ defmodule SenditWeb.Chat.ConversationsList do
             <button
               tabindex="0"
               type="button"
-              class="btn btn-ghost btn-sm btn-circle opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              class="btn btn-ghost btn-sm btn-circle opacity-100 md:opacity-0 md:group-hover:opacity-100"
             >
               <.icon name="hero-ellipsis-horizontal" class="h-5 w-5" />
             </button>

@@ -16,14 +16,12 @@ defmodule SenditWeb.Chat.InboxSidebar do
 
   def inbox_sidebar(assigns) do
     ~H"""
-    <aside class={
-      [
-        "flex flex-col bg-base-100 border-r border-base-200",
-        "absolute inset-0 z-20 md:relative md:inset-auto md:z-auto",
-        "w-full md:w-80 md:shrink-0"
-        # if(@mobile_show_chat, do: "hidden md:flex", else: "flex")
-      ]
-    }>
+    <aside class={[
+      "flex flex-col bg-base-100 border-r border-base-200",
+      "absolute inset-0 z-20 md:relative md:inset-auto md:z-auto",
+      "w-full md:w-80 md:shrink-0",
+      if(@mobile_show_chat, do: "flex", else: "hidden md:flex")
+    ]}>
       <div class="navbar border-b border-base-200 min-h-0 px-4 py-3 gap-2 shrink-0">
         <div class="navbar-start gap-2">
           <.app_logo link={~p"/chat"} />
