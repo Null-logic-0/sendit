@@ -1,6 +1,6 @@
 defmodule SenditWeb.Chat.MessagesList do
   use SenditWeb, :html
-  import SenditWeb.UI.AsyncList
+  import SenditWeb.UI.{AsyncList, TypingIndicator}
   import SenditWeb.Chat.MessageItem
 
   def messages_list(assigns) do
@@ -34,9 +34,7 @@ defmodule SenditWeb.Chat.MessagesList do
         <div class="chat-header mb-0.5">
           <span class="text-xs opacity-50">{u.full_name}</span>
         </div>
-        <div class="chat-bubble py-3 px-4">
-          <span class="loading loading-dots loading-sm"></span>
-        </div>
+        <.typing_indicator />
       </div>
     <% end %>
     """

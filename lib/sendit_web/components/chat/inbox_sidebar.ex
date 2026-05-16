@@ -78,7 +78,7 @@ defmodule SenditWeb.Chat.InboxSidebar do
         />
       </div>
 
-      <.inbox_profile current_scope={@current_scope} />
+      <.inbox_profile current_scope={@current_scope} online_user_ids={@online_user_ids} />
     </aside>
     """
   end

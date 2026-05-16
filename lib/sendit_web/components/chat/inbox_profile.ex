@@ -1,11 +1,18 @@
 defmodule SenditWeb.Chat.InboxProfile do
   use SenditWeb, :html
 
+  import SenditWeb.UI.Avatar
+
   def inbox_profile(assigns) do
     ~H"""
+    <% online? = @current_scope.user.id in @online_user_ids %>
     <div class="fixed z-10 sm:w-[319px] w-full bottom-0 bg-base-100 border-t border-base-200  p-2 flex  items-center gap-2 shrink-0">
-      <img src={@current_scope.user.avatar} class="rounded-full object-cover w-12 h-12" />
-
+      <.avatar
+        src={@current_scope.user.avatar}
+        alt={@current_scope.user.full_name}
+        size="md"
+        online?={online?}
+      />
       <div class="flex-1">
         <p class="text-sm font-medium truncate">
           {@current_scope.user.full_name}

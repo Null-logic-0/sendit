@@ -6,6 +6,10 @@ defmodule SenditWeb.HomePage do
     LandingFooter
   }
 
+  import SenditWeb.UI.{
+    TypingIndicator
+  }
+
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
@@ -243,14 +247,6 @@ defmodule SenditWeb.HomePage do
       ]}>
         {render_slot(@inner_block)}
       </div>
-    </div>
-    """
-  end
-
-  defp typing_indicator(assigns) do
-    ~H"""
-    <div class="chat-bubble flex items-center gap-1 py-3">
-      <span class="loading loading-dots loading-sm"></span>
     </div>
     """
   end
