@@ -4,14 +4,14 @@ defmodule SenditWeb.Chat.InboxSidebar do
   import SenditWeb.UI.{
     AppLogo,
     ThemeToggle,
-    Modal,
     Search
   }
 
   import SenditWeb.Chat.{
     InboxProfile,
-    UsersList,
-    ConversationsList
+    ConversationsList,
+    ConversationModal,
+    GroupConversationModal
   }
 
   def inbox_sidebar(assigns) do
@@ -38,31 +38,35 @@ defmodule SenditWeb.Chat.InboxSidebar do
           id="search-conversations"
           form={@conversations_form}
         />
+
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm btn-circle mb-2"
+          title="New group conversation"
+          onclick="group_modal.showModal()"
+        >
+          <.icon name="hero-user-group" class="size-5" />
+        </button>
         <button
           type="button"
           class="btn btn-ghost btn-sm btn-circle mb-2"
           title="New conversation"
           onclick="conv_modal.showModal()"
         >
-          <.icon name="hero-plus" class="size-5" />
+          <.icon name="hero-user-plus" class="size-5" />
         </button>
       </div>
 
-      <.modal id="conv_modal" title="New conversation">
-        <.search
-          placeholder="Search Users..."
-          form={@users_form}
-          change="search-users"
-          id="search-users"
-          class="px-4"
-        />
-        <div class="max-h-[60vh] overflow-y-auto">
-          <.users_list users={@users} />
-        </div>
-        <div class="px-4 py-2 border-t border-base-200 text-xs text-base-content/50">
-          Select a user to start chatting
-        </div>
-      </.modal>
+      <.group_conversation_modal
+        users={@users}
+        form={@users_form}
+        selected_user_ids={@selected_user_ids}
+      />
+
+      <.conversation_modal
+        users={@users}
+        form={@users_form}
+      />
 
       <div class="overflow-y-auto pb-16">
         <.conversations_list conversations={@conversations} current_scope={@current_scope} />

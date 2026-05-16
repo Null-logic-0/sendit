@@ -6,6 +6,8 @@ defmodule Sendit.Chat.Conversations do
 
   schema "conversations" do
     field :last_message_at, :utc_datetime
+    field :title, :string
+    field :is_group, :boolean, default: false
 
     many_to_many :users, User,
       join_through: "conversation_participants",
@@ -16,12 +18,23 @@ defmodule Sendit.Chat.Conversations do
 
   def changeset(conversation, attrs) do
     conversation
-    |> cast(attrs, [:last_message_at])
+    |> cast(attrs, [:last_message_at, :title, :is_group])
+    |> maybe_require_title()
   end
 
-  def create_changeset(conversation, users) do
+  def create_changeset(conversation, users, attrs \\ %{}) do
     conversation
-    |> changeset(%{})
+    |> changeset(attrs)
     |> put_assoc(:users, users)
+  end
+
+  defp maybe_require_title(changeset) do
+    if get_field(changeset, :is_group) do
+      changeset
+      |> validate_required([:title])
+      |> validate_length(:title, min: 3, max: 100)
+    else
+      changeset
+    end
   end
 end

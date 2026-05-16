@@ -28,9 +28,15 @@ defmodule SenditWeb.Chat.ConversationsList do
           </:action>
         </.empty_state>
       </:empty>
+
       <:item :let={conversation}>
-        <% other_user =
-          Enum.find(conversation.users, &(&1.id != @current_scope.user.id)) %>
+        <% {display_name, display_avatar} =
+          if conversation.is_group do
+            {conversation.title, nil}
+          else
+            other_user = Enum.find(conversation.users, &(&1.id != @current_scope.user.id))
+            {other_user.full_name, other_user.avatar}
+          end %>
 
         <div
           id={"conversation-#{conversation.id}"}
@@ -40,18 +46,24 @@ defmodule SenditWeb.Chat.ConversationsList do
             navigate={~p"/chat/#{conversation.id}"}
             class="flex flex-1 items-center gap-3 min-w-0"
           >
-            <img
-              src={other_user.avatar}
-              class="h-10 w-10 rounded-full object-cover"
-            />
-
+            <%= if display_avatar do %>
+              <img src={display_avatar} class="h-10 w-10 rounded-full object-cover shrink-0" />
+            <% else %>
+              <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <.icon name="hero-user-group" class="h-5 w-5 text-primary" />
+              </div>
+            <% end %>
             <div class="flex flex-col min-w-0">
               <p class="truncate text-sm font-medium text-base-content">
-                {other_user.full_name}
+                {display_name}
               </p>
+              <%= if conversation.is_group do %>
+                <p class="truncate text-xs text-base-content/50">
+                  {length(conversation.users)} members
+                </p>
+              <% end %>
             </div>
           </.link>
-
           <div class="dropdown dropdown-end  relative">
             <button
               tabindex="0"

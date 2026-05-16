@@ -13,32 +13,42 @@ defmodule Sendit.Chat do
   end
 
   def list_conversations(%Scope{} = scope, params) do
+    q = params["q"]
+
     from(c in Conversations,
-      join: p in "conversation_participants",
-      on: p.conversation_id == c.id,
-      join: u in User,
-      on: u.id == p.user_id,
-      where: p.user_id != ^scope.user.id,
       where:
         fragment(
-          "? IN (
-        SELECT cp.conversation_id FROM conversation_participants cp
-        WHERE cp.user_id = ?
-      )",
+          "? IN (SELECT cp.conversation_id FROM conversation_participants cp WHERE cp.user_id = ?)",
           c.id,
           ^scope.user.id
         ),
-      order_by: [desc_nulls_last: c.last_message_at],
-      preload: :users
+      order_by: [desc_nulls_last: c.last_message_at]
     )
-    |> search_conversations_by(params["q"])
+    |> search_conversations_by(q)
     |> Repo.all()
+    |> Repo.preload(:users)
   end
 
   defp search_conversations_by(query, q) when q in ["", nil], do: query
 
   defp search_conversations_by(query, q) do
-    where(query, [_c, _p, u], ilike(u.username, ^"%#{q}%") or ilike(u.full_name, ^"%#{q}%"))
+    where(
+      query,
+      [c],
+      ilike(c.title, ^"%#{q}%") or
+        fragment(
+          "EXISTS (
+            SELECT 1 FROM conversation_participants cp
+            JOIN users u ON u.id = cp.user_id
+            WHERE cp.conversation_id = ? AND (
+              u.username ILIKE ? OR u.full_name ILIKE ?
+            )
+          )",
+          c.id,
+          ^"%#{q}%",
+          ^"%#{q}%"
+        )
+    )
   end
 
   def get_conversation!(%Scope{} = scope, id) do
@@ -58,23 +68,39 @@ defmodule Sendit.Chat do
         on: p1.conversation_id == c.id,
         join: p2 in "conversation_participants",
         on: p2.conversation_id == c.id,
-        where: p1.user_id == ^scope.user.id and p2.user_id == ^other_user.id,
+        where: p1.user_id == ^scope.user.id,
+        where: p2.user_id == ^other_user.id,
+        where: c.is_group == false,
+        where:
+          fragment(
+            "(SELECT COUNT(*) FROM conversation_participants cp WHERE cp.conversation_id = ?) = 2",
+            c.id
+          ),
         limit: 1
       )
       |> Repo.one()
 
     case existing do
       %Conversations{} = conv -> {:ok, conv}
-      nil -> create_conversation(scope, other_user)
+      nil -> create_conversation(scope, [scope.user, other_user], %{is_group: false})
     end
   end
 
-  defp create_conversation(%Scope{} = scope, %User{} = other_user) do
+  def create_group_conversation(%Scope{} = scope, user_ids, title)
+      when is_list(user_ids) and length(user_ids) >= 2 do
+    other_users = Repo.all(from u in User, where: u.id in ^user_ids)
+    all_users = [scope.user | other_users] |> Enum.uniq_by(& &1.id)
+
+    create_conversation(scope, all_users, %{is_group: true, title: title})
+  end
+
+  defp create_conversation(%Scope{} = scope, users, attrs) when is_list(users) do
     with {:ok, conversation} <-
            %Conversations{}
-           |> Conversations.create_changeset([scope.user, other_user])
+           |> Conversations.create_changeset(users, attrs)
            |> Repo.insert() do
       broadcast_conversations(scope, {:created, conversation})
+
       {:ok, conversation}
     end
   end
