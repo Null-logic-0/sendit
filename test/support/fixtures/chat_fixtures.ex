@@ -13,4 +13,17 @@ defmodule Sendit.ChatFixtures do
   #   {:ok, conversations} = Sendit.Chat.create_conversations(scope, attrs)
   #   conversations
   # end
+
+  @doc """
+  Generate a message.
+  """
+  def message_fixture(scope, attrs \\ %{}) do
+    attrs =
+      Enum.into(attrs, %{
+        body: "some body"
+      })
+
+    {:ok, message} = Sendit.Chat.create_message(scope, attrs)
+    message
+  end
 end

@@ -3,7 +3,7 @@ defmodule SenditWeb.Chat.InboxProfile do
 
   def inbox_profile(assigns) do
     ~H"""
-    <div class="fixed z-10 sm:w-xs w-full bottom-0 bg-base-100 border-t border-base-200  p-2 flex  items-center gap-2 shrink-0">
+    <div class="fixed z-10 sm:w-[319px] w-full bottom-0 bg-base-100 border-t border-base-200  p-2 flex  items-center gap-2 shrink-0">
       <img src={@current_scope.user.avatar} class="rounded-full object-cover w-12 h-12" />
 
       <div class="flex-1">

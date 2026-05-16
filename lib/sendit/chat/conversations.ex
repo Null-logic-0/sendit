@@ -3,11 +3,16 @@ defmodule Sendit.Chat.Conversations do
   import Ecto.Changeset
 
   alias Sendit.Accounts.User
+  alias Sendit.Chat.Message
 
   schema "conversations" do
     field :last_message_at, :utc_datetime
     field :title, :string
     field :is_group, :boolean, default: false
+    field :creator_id, :id
+    field :messages_count, :integer, virtual: true
+
+    has_many :messages, Message, foreign_key: :conversation_id
 
     many_to_many :users, User,
       join_through: "conversation_participants",
@@ -18,7 +23,7 @@ defmodule Sendit.Chat.Conversations do
 
   def changeset(conversation, attrs) do
     conversation
-    |> cast(attrs, [:last_message_at, :title, :is_group])
+    |> cast(attrs, [:last_message_at, :title, :is_group, :creator_id])
     |> maybe_require_title()
   end
 
