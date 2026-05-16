@@ -1,6 +1,7 @@
 defmodule SenditWeb.Chat.ChatHeader do
   use SenditWeb, :html
 
+  import SenditWeb.UI.Avatar
   import SenditWeb.Chat.ChatInfoDrawer
 
   def chat_header(assigns) do
@@ -16,18 +17,30 @@ defmodule SenditWeb.Chat.ChatHeader do
         </div>
       <% else %>
         <% u = Enum.find(@conversation.users, &(&1.id != @current_scope.user.id)) %>
-        <img src={u.avatar} class="w-12 h-12 rounded-full object-cover shrink-0" />
+        <% online? = u.id in @online_user_ids %>
+        <.avatar
+          src={u.avatar}
+          size="md"
+          online?={online?}
+        />
       <% end %>
 
       <div>
         <p class="text-lg font-semibold truncate">{@display_name}</p>
-        <p class="text-xs text-base-content/50 truncate">{@display_subtitle}</p>
+        <p class="text-xs text-base-content/50 truncate">
+          <%= if not @conversation.is_group do %>
+            <span>{@display_subtitle}</span>
+          <% else %>
+            {@display_subtitle}
+          <% end %>
+        </p>
       </div>
 
       <.chat_info_drawer
         current_scope={@current_scope}
         conversation={@conversation}
         display_name={@display_name}
+        online_user_ids={@online_user_ids}
         display_subtitle={@display_subtitle}
       />
     </div>

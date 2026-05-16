@@ -12,6 +12,7 @@ defmodule Sendit.Application do
       Sendit.Repo,
       {DNSCluster, query: Application.get_env(:sendit, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Sendit.PubSub},
+      SenditWeb.Chat.Presence,
       # Start a worker by calling: Sendit.Worker.start_link(arg)
       # {Sendit.Worker, arg},
       # Start to serve requests, typically the last entry

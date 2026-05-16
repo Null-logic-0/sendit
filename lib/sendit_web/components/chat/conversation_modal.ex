@@ -15,7 +15,7 @@ defmodule SenditWeb.Chat.ConversationModal do
         />
       </div>
       <div class="max-h-[45vh] overflow-y-auto">
-        <.users_list users={@users} />
+        <.users_list users={@users} online_user_ids={@online_user_ids} />
       </div>
       <div class="px-4 py-2 border-t border-base-200 text-xs text-base-content/50">
         Select a user to start chatting

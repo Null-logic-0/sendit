@@ -1,6 +1,6 @@
 defmodule SenditWeb.Chat.ConversationsList do
   use SenditWeb, :html
-  import SenditWeb.UI.{AsyncList, EmptyState}
+  import SenditWeb.UI.{AsyncList, EmptyState, Avatar}
 
   def conversations_list(assigns) do
     ~H"""
@@ -25,14 +25,16 @@ defmodule SenditWeb.Chat.ConversationsList do
         </.empty_state>
       </:empty>
       <:item :let={conversation}>
-        <% {display_name, display_avatar} =
+        <% {display_name, display_avatar, other_user} =
           if conversation.is_group do
-            {conversation.title, nil}
+            {conversation.title, nil, nil}
           else
-            other_user = Enum.find(conversation.users, &(&1.id != @current_scope.user.id))
-            {other_user.full_name, other_user.avatar}
+            u = Enum.find(conversation.users, &(&1.id != @current_scope.user.id))
+            {u.full_name, u.avatar, u}
           end %>
         <% last_message = List.last(conversation.messages) %>
+        <% online? = other_user != nil && other_user.id in @online_user_ids %>
+
         <div
           id={"conversation-#{conversation.id}"}
           class="group flex items-center gap-3 px-4 py-3 hover:bg-base-200 w-full"
@@ -42,7 +44,11 @@ defmodule SenditWeb.Chat.ConversationsList do
             class="flex flex-1 items-center gap-3 min-w-0"
           >
             <%= if display_avatar do %>
-              <img src={display_avatar} class="h-10 w-10 rounded-full object-cover shrink-0" />
+              <.avatar
+                src={display_avatar}
+                size="md"
+                online?={online?}
+              />
             <% else %>
               <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <.icon name="hero-user-group" class="h-5 w-5 text-primary" />

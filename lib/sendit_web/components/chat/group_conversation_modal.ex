@@ -1,6 +1,6 @@
 defmodule SenditWeb.Chat.GroupConversationModal do
   use SenditWeb, :html
-  import SenditWeb.UI.{Modal, Search, AsyncList}
+  import SenditWeb.UI.{Modal, Search, AsyncList, Avatar}
 
   def group_conversation_modal(assigns) do
     ~H"""
@@ -31,6 +31,8 @@ defmodule SenditWeb.Chat.GroupConversationModal do
           empty_description="Search for users to add."
         >
           <:item :let={user}>
+            <% online? = user.id in @online_user_ids %>
+
             <div
               phx-click="toggle_group_user"
               phx-value-user_id={user.id}
@@ -39,7 +41,11 @@ defmodule SenditWeb.Chat.GroupConversationModal do
                 if(to_string(user.id) in @selected_user_ids, do: "bg-primary/10")
               ]}
             >
-              <img src={user.avatar} class="rounded-full object-cover w-10 h-10" />
+              <.avatar
+                src={user.avatar}
+                size="sm"
+                online?={online?}
+              />
               <div class="flex flex-col flex-1">
                 <p class="text-sm font-medium truncate">{user.full_name}</p>
                 <p class="text-xs font-medium">@{user.username}</p>

@@ -61,15 +61,21 @@ defmodule SenditWeb.Chat.InboxSidebar do
         users={@users}
         form={@users_form}
         selected_user_ids={@selected_user_ids}
+        online_user_ids={@online_user_ids}
       />
 
       <.conversation_modal
         users={@users}
         form={@users_form}
+        online_user_ids={@online_user_ids}
       />
 
       <div class="overflow-y-auto pb-16">
-        <.conversations_list conversations={@conversations} current_scope={@current_scope} />
+        <.conversations_list
+          conversations={@conversations}
+          current_scope={@current_scope}
+          online_user_ids={@online_user_ids}
+        />
       </div>
 
       <.inbox_profile current_scope={@current_scope} />

@@ -1,5 +1,6 @@
 defmodule SenditWeb.Chat.ChatInfoDrawer do
   use SenditWeb, :html
+  import SenditWeb.UI.Avatar
 
   def chat_info_drawer(assigns) do
     ~H"""
@@ -29,8 +30,14 @@ defmodule SenditWeb.Chat.ChatInfoDrawer do
                 Members
               </p>
               <%= for user <- @conversation.users do %>
+                <% online? = user.id in @online_user_ids %>
+
                 <div class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-base-300 ">
-                  <img src={user.avatar} class="w-9 h-9 rounded-full object-cover shrink-0" />
+                  <.avatar
+                    src={user.avatar}
+                    size="sm"
+                    online?={online?}
+                  />
                   <div class="flex flex-col min-w-0">
                     <p class="text-sm font-medium truncate">{user.full_name}</p>
                     <p class="text-xs text-base-content/50 truncate">@{user.username}</p>
@@ -43,7 +50,13 @@ defmodule SenditWeb.Chat.ChatInfoDrawer do
             </div>
           <% else %>
             <% u = Enum.find(@conversation.users, &(&1.id != @current_scope.user.id)) %>
-            <img src={u.avatar} class="w-24 h-24 rounded-full object-cover shrink-0" />
+            <% online? = u.id in @online_user_ids %>
+
+            <.avatar
+              src={u.avatar}
+              size="xl"
+              online?={online?}
+            />
             <div class="text-center">
               <p class="text-xl font-semibold">{u.full_name}</p>
               <p class="text-lg text-base-content/50">@{u.username}</p>

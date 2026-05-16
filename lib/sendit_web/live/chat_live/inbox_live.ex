@@ -12,6 +12,7 @@ defmodule SenditWeb.ChatLive.InboxLive do
   alias Sendit.Chat
   alias Sendit.Accounts
   alias Phoenix.LiveView.AsyncResult
+  alias SenditWeb.Chat.Presence
 
   def render(assigns) do
     ~H"""
@@ -24,6 +25,7 @@ defmodule SenditWeb.ChatLive.InboxLive do
         users_form={@users_form}
         mobile_show_chat={@mobile_show_chat}
         selected_user_ids={@selected_user_ids}
+        online_user_ids={@online_user_ids}
       />
 
       <%= if @live_action == :show do %>
@@ -45,6 +47,7 @@ defmodule SenditWeb.ChatLive.InboxLive do
             conversation={@conversation}
             display_name={display_name}
             display_subtitle={display_subtitle}
+            online_user_ids={@online_user_ids}
           />
           <div
             id="messages-container"
@@ -121,11 +124,26 @@ defmodule SenditWeb.ChatLive.InboxLive do
   end
 
   def mount(_params, _session, socket) do
+    current_user = socket.assigns.current_scope.user
+
     if connected?(socket) do
       Chat.subscribe_conversation(socket.assigns.current_scope)
+
+      {:ok, _} =
+        Presence.track(self(), "online_users", current_user.id, %{
+          user_id: current_user.id,
+          online_at: System.system_time(:second)
+        })
+
+      Phoenix.PubSub.subscribe(Sendit.PubSub, "online_users")
     end
 
-    {:ok, assign(socket, :read_timestamps, %{})}
+    socket =
+      socket
+      |> assign(:read_timestamps, %{})
+      |> assign(:online_user_ids, get_online_user_ids())
+
+    {:ok, socket}
   end
 
   def handle_params(%{"id" => id} = params, _uri, socket) do
@@ -266,6 +284,13 @@ defmodule SenditWeb.ChatLive.InboxLive do
     {:noreply, socket}
   end
 
+  def handle_info(
+        %Phoenix.Socket.Broadcast{event: "presence_diff", topic: "online_users"},
+        socket
+      ) do
+    {:noreply, assign(socket, :online_user_ids, get_online_user_ids())}
+  end
+
   # ── Events ───────────────────────────────────────────────────────
 
   def handle_event("send_message", %{"body" => body}, socket) do
@@ -393,6 +418,18 @@ defmodule SenditWeb.ChatLive.InboxLive do
   end
 
   # Private
+
+  defp get_online_user_ids do
+    Presence.list("online_users")
+    |> Map.keys()
+    |> Enum.map(fn key ->
+      case Integer.parse(to_string(key)) do
+        {id, _} -> id
+        :error -> nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
+  end
 
   defp base_assigns(socket, params) do
     current_user = socket.assigns.current_scope
