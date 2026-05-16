@@ -59,6 +59,10 @@ defmodule SenditWeb.ChatLive.InboxLive do
               current_scope={@current_scope}
               editing_message_id={@editing_message_id}
               read_timestamps={@read_timestamps}
+              typing_users={
+                @conversation.users
+                |> Enum.filter(&(&1.id in @typing_user_ids))
+              }
             />
           </div>
           <div class="border-t w-full bottom-0 bg-base-100 border-base-200 px-2 pb-3 pt-2 shrink-0">
@@ -85,6 +89,8 @@ defmodule SenditWeb.ChatLive.InboxLive do
                   rows="1"
                   phx-hook="AutoGrow"
                   id="message-input"
+                  phx-keydown="typing"
+                  phx-debounce="2000"
                   placeholder={"Message #{display_name}…"}
                   class="input w-full resize-none bg-base-200 border-none h-auto pt-2 pb-4 px-3 rounded-2xl focus-within:outline-none"
                 >{@draft_text}</textarea>
@@ -159,6 +165,7 @@ defmodule SenditWeb.ChatLive.InboxLive do
       conversation ->
         if connected?(socket) do
           Chat.subscribe_messages(conversation.id)
+          Chat.subscribe_typing(conversation.id)
           Chat.mark_as_read(current_user, conversation.id)
         end
 
@@ -291,6 +298,27 @@ defmodule SenditWeb.ChatLive.InboxLive do
     {:noreply, assign(socket, :online_user_ids, get_online_user_ids())}
   end
 
+  def handle_info({:typing, user_id}, socket) do
+    current_id = socket.assigns.current_scope.user.id
+
+    if user_id != current_id do
+      {:noreply,
+       assign(socket, :typing_user_ids, Enum.uniq([user_id | socket.assigns.typing_user_ids]))}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:stop_typing, user_id}, socket) do
+    {:noreply,
+     assign(socket, :typing_user_ids, List.delete(socket.assigns.typing_user_ids, user_id))}
+  end
+
+  def handle_info({:stop_typing_self, conversation_id, user_id}, socket) do
+    Chat.broadcast_stop_typing(conversation_id, user_id)
+    {:noreply, socket}
+  end
+
   # ── Events ───────────────────────────────────────────────────────
 
   def handle_event("send_message", %{"body" => body}, socket) do
@@ -298,8 +326,18 @@ defmodule SenditWeb.ChatLive.InboxLive do
 
     case Chat.create_message(socket.assigns.current_scope, attrs) do
       {:ok, _message} ->
+        if socket.assigns.typing_timer_ref do
+          Process.cancel_timer(socket.assigns.typing_timer_ref)
+        end
+
         Chat.mark_as_read(socket.assigns.current_scope, socket.assigns.conversation.id)
-        {:noreply, assign(socket, :draft_text, "")}
+
+        Chat.broadcast_stop_typing(
+          socket.assigns.conversation.id,
+          socket.assigns.current_scope.user.id
+        )
+
+        {:noreply, socket |> assign(:draft_text, "") |> assign(:typing_timer_ref, nil)}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Could not send message")}
@@ -346,6 +384,25 @@ defmodule SenditWeb.ChatLive.InboxLive do
     case Chat.delete_message(socket.assigns.current_scope, message) do
       {:ok, _} -> {:noreply, socket}
       {:error, _} -> {:noreply, put_flash(socket, :error, "Could not delete message")}
+    end
+  end
+
+  def handle_event("typing", _params, socket) do
+    if socket.assigns.live_action == :show do
+      conversation_id = socket.assigns.conversation.id
+      user_id = socket.assigns.current_scope.user.id
+
+      if socket.assigns.typing_timer_ref do
+        Process.cancel_timer(socket.assigns.typing_timer_ref)
+      end
+
+      Chat.broadcast_typing(conversation_id, user_id)
+
+      ref = Process.send_after(self(), {:stop_typing_self, conversation_id, user_id}, 3000)
+
+      {:noreply, assign(socket, :typing_timer_ref, ref)}
+    else
+      {:noreply, socket}
     end
   end
 
@@ -452,6 +509,8 @@ defmodule SenditWeb.ChatLive.InboxLive do
     |> assign(:message_form, to_form(%{}))
     |> assign(:conversations_form, to_form(%{"q" => q_conversations}))
     |> assign(:messages, AsyncResult.ok([]))
+    |> assign(:typing_user_ids, [])
+    |> assign(:typing_timer_ref, nil)
     |> assign(:editing_message_id, nil)
     |> assign(:draft_text, "")
     |> assign_async(:users, fn ->

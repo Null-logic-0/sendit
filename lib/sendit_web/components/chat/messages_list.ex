@@ -7,28 +7,38 @@ defmodule SenditWeb.Chat.MessagesList do
     assigns = assign(assigns, :last_message_id, last_message_id(assigns.messages))
 
     ~H"""
-    <div
-      id="messages-container"
-      phx-hook="ScrollToBottom"
-      class="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2"
+    <.async_list
+      assign={@messages}
+      empty_icon="hero-chat-bubble-left-ellipsis"
+      empty_title="No messages yet"
+      empty_description="Say hello!"
     >
-      <.async_list
-        assign={@messages}
-        empty_icon="hero-chat-bubble-left-ellipsis"
-        empty_title="No messages yet"
-        empty_description="Say hello!"
-      >
-        <:item :let={message}>
-          <.message_item
-            message={message}
-            current_scope={@current_scope}
-            editing_message_id={@editing_message_id}
-            read_timestamps={@read_timestamps}
-            is_last={message.id == @last_message_id}
-          />
-        </:item>
-      </.async_list>
-    </div>
+      <:item :let={message}>
+        <.message_item
+          message={message}
+          current_scope={@current_scope}
+          editing_message_id={@editing_message_id}
+          read_timestamps={@read_timestamps}
+          is_last={message.id == @last_message_id}
+        />
+      </:item>
+    </.async_list>
+
+    <%= for u <- @typing_users do %>
+      <div class="chat chat-start">
+        <div class="chat-image avatar">
+          <div class="w-10 rounded-full">
+            <img src={u.avatar} />
+          </div>
+        </div>
+        <div class="chat-header mb-0.5">
+          <span class="text-xs opacity-50">{u.full_name}</span>
+        </div>
+        <div class="chat-bubble py-3 px-4">
+          <span class="loading loading-dots loading-sm"></span>
+        </div>
+      </div>
+    <% end %>
     """
   end
 

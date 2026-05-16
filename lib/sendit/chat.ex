@@ -197,6 +197,18 @@ defmodule Sendit.Chat do
     )
   end
 
+  def broadcast_typing(conversation_id, user_id) do
+    Phoenix.PubSub.broadcast(Sendit.PubSub, "typing:#{conversation_id}", {:typing, user_id})
+  end
+
+  def broadcast_stop_typing(conversation_id, user_id) do
+    Phoenix.PubSub.broadcast(Sendit.PubSub, "typing:#{conversation_id}", {:stop_typing, user_id})
+  end
+
+  def subscribe_typing(conversation_id) do
+    Phoenix.PubSub.subscribe(Sendit.PubSub, "typing:#{conversation_id}")
+  end
+
   def list_messages(conversation_id) do
     from(m in Message,
       where: m.conversation_id == ^conversation_id,
